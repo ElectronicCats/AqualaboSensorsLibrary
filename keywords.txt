@@ -1,0 +1,63 @@
+#######################################
+# Syntax Coloring Map For AqualaboSensor
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+AqualaboSensor	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin	KEYWORD2
+readWaitingTime	KEYWORD2
+LONG	KEYWORD2
+
+clearBuffer	KEYWORD2
+
+initSensor	KEYWORD2
+read	KEYWORD2
+readMeasures	KEYWORD2
+readExtendedMeasures	KEYWORD2
+
+readSerialNumber	KEYWORD2
+searchAddress	KEYWORD2
+changeAddress	KEYWORD2
+writeAverage	KEYWORD2
+readAverage	KEYWORD2
+writeParamConfig	KEYWORD2
+readEnableCompensationFlags	KEYWORD2
+enableCompensation	KEYWORD2
+setCompValue	KEYWORD2
+calibrate	KEYWORD2
+
+writeCalibrationStandard	KEYWORD2
+readCalibrationStandard	KEYWORD2
+writeTemporaryCoefficientList	KEYWORD2
+readTemporaryCoefficientList	KEYWORD2
+writeCalibrationValidation	KEYWORD2
+restoreToFactoryCalibration	KEYWORD2
+resetTemporaryCalibrationData	KEYWORD2
+setParametersBySensor	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+sensorAddr	LITERAL1
+waitingTime	LITERAL1
+calibrationOperatorsName	LITERAL1
+address_offset	LITERAL1
+
+address_slope	LITERAL1
+temporaryCoefficientListBuffer	LITERAL1
+foo	LITERAL1
+foo2	LITERAL1
+temperature	LITERAL1
+
+conductivity	LITERAL1
+salinity	LITERAL1
+totalDissolvedSolids	LITERAL1
