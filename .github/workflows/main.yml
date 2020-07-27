@@ -31,31 +31,31 @@ jobs:
         # You may add a suffix behind the fqbn with "|" to specify one board for e.g. different compile options like arduino:avr:uno|trace 
         #############################################################################################################
         arduino-boards-fqbn:
-          - arduino:avr:uno
-          - arduino:avr:leonardo
+          #- arduino:avr:uno
+          #- arduino:avr:leonardo
           - arduino:samd:nano_33_iot
-          - arduino:mbed:nano33ble
-          - esp8266:esp8266:huzzah:eesz=4M3M,xtal=80
-          - esp32:esp32:featheresp32:FlashFreq=80
+          - arduino:samd:mkr1300
+          #- esp8266:esp8266:huzzah:eesz=4M3M,xtal=80
+          #- esp32:esp32:featheresp32:FlashFreq=80
 
         # Specify parameters for each board.
         # Parameters can be: platform-url, examples-exclude and examples-build-properties
         # With examples-exclude you may exclude specific examples for a board. Use a space separated list.
         #############################################################################################################
         include:
-          - arduino-boards-fqbn: arduino:avr:uno
+          #- arduino-boards-fqbn: arduino:avr:uno
 
-          - arduino-boards-fqbn: arduino:avr:leonardo
+          #- arduino-boards-fqbn: arduino:avr:leonardo
           
           - arduino-boards-fqbn: arduino:samd:nano_33_iot
           
-          - arduino-boards-fqbn: arduino:mbed:nano33ble
+          - arduino-boards-fqbn: arduino:samd:mkr130
 
-          - arduino-boards-fqbn: esp8266:esp8266:huzzah:eesz=4M3M,xtal=80
-            platform-url: https://arduino.esp8266.com/stable/package_esp8266com_index.json
+          #- arduino-boards-fqbn: esp8266:esp8266:huzzah:eesz=4M3M,xtal=80
+          #  platform-url: https://arduino.esp8266.com/stable/package_esp8266com_index.json
 
-          - arduino-boards-fqbn: esp32:esp32:featheresp32:FlashFreq=80
-            platform-url: https://dl.espressif.com/dl/package_esp32_index.json
+          #- arduino-boards-fqbn: esp32:esp32:featheresp32:FlashFreq=80
+          #  platform-url: https://dl.espressif.com/dl/package_esp32_index.json
 
       # Do not cancel all jobs / architectures if one job fails
       fail-fast: false
