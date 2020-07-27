@@ -19,7 +19,7 @@ This is based in the work Libelium is a port for Arduino Board and Agualabo Sens
 **Working and tested**
  - C4E /Salinite/Temp PONSEL
 
-**Wihtout Test**
+**Without Test**
 - pH / Redox / Temperature PONSEL
 - ODO / Temperature PONSEL
 - Nephelo/TU / Temperature PONSEL / NTU
