@@ -36,71 +36,49 @@
 /***********************************************************************
  * Class contructors
  ***********************************************************************/
-/*aqualaboModbusSensorsClass::aqualaboModbusSensorsClass()
-{
-	waitingTime = DEFAULT_WAITING_TIME;
-	sensorAddr = DEFAULT_ADDRESS;
-	temporaryCoefficientListBuffer = 0;
-}
-*/
+aqualaboModbusSensorsClass::aqualaboModbusSensorsClass():_modbusport(Serial2){}
 
 /***********************************************************************
  * Methods of the Class
  ***********************************************************************/
 
 //!*************************************************************
-//!	Name:	initCommunication()
+//!	Name:	begin()
 //!	Description: Initializes the communication channel
-//!	Param : void
+//!	Param : 
 //!	Returns: void
 //!*************************************************************
-/*void aqualaboModbusSensorsClass::initCommunication()
+void aqualaboModbusSensorsClass::begin(uint8_t slave, Stream &modbusport=Serial2)
 {
-  //sensor = ModbusMaster(Serial2, sensorAddr);
-  Serial2.begin(9600);
+  _u8MBSlave = slave;
+  _modbusport = modbusport;
   
-  // The sensor uses 9600 bps speed communication
-  sensor.begin(1, Serial2);
+  // communicate with Modbus slave ID 2 over Serial (port 0)
+  sensor.begin(_u8MBSlave, _modbusport);
 
-  sensor.preTransmission(preTransmission);
-  sensor.postTransmission(postTransmission);
-
-
-  
-  clearBuffer();
 }
-*/
-aqualaboModbusSensorsClass::aqualaboModbusSensorsClass(void){
-	waitingTime = DEFAULT_WAITING_TIME;
-	sensorAddr = DEFAULT_ADDRESS;
-	temporaryCoefficientListBuffer = 0;
-}
-/*
-void preTransmission()
+
+
+void aqualaboModbusSensorsClass::preTransmission(bool d)
 {
   digitalWrite(_rePin, 1);
   digitalWrite(_dePin, 1);
 }
 
-void postTransmission()
+void aqualaboModbusSensorsClass::postTransmission(bool d)
 {
   digitalWrite(_rePin, 0);
   digitalWrite(_dePin, 0);
 }
-*/
-void aqualaboModbusSensorsClass::begin(uint8_t slave, Stream &serial)
-{
-  _u8MBSlave = slave;
-  _serial = &serial;
-  // communicate with Modbus slave ID 2 over Serial (port 0)
-  sensor.begin(_u8MBSlave, *_serial);
-  //RS485.begin(ctx_rtu->baud, ctx_rtu->config);
-}
 
-void aqualaboModbusSensorsClass::begin(uint8_t slave, Stream &serial, int dePin, int rePin )
+void aqualaboModbusSensorsClass::begin(uint8_t slave, int dePin, int rePin, Stream &modbusport=Serial2 )
 {
+    waitingTime = DEFAULT_WAITING_TIME;
+    sensorAddr = DEFAULT_ADDRESS;
+    temporaryCoefficientListBuffer = 0;
   _dePin = dePin;
   _rePin = rePin;
+
   if (_dePin > -1) {
     pinMode(_dePin, OUTPUT);
     digitalWrite(_dePin, LOW);
@@ -112,13 +90,16 @@ void aqualaboModbusSensorsClass::begin(uint8_t slave, Stream &serial, int dePin,
   }
 
   _u8MBSlave = slave;
-  _serial = &serial;
+  _modbusport=modbusport;
+  
   // communicate with Modbus slave ID 2 over Serial (port 0)
-  sensor.begin(_u8MBSlave, *_serial);
+  sensor.begin(_u8MBSlave, _modbusport);
 
-   // TODO: Callbacks allow us to configure the RS485 transceiver correctly
-  //sensor.preTransmission(preTransmission);
-  //sensor.postTransmission(postTransmission);
+  postTransmission(1);//reading mode by default
+
+   // Callbacks allow us to configure the RS485 transceiver correctly
+  sensor.preTransmission.attach(this,&aqualaboModbusSensorsClass::preTransmission);
+  sensor.postTransmission.attach(this,&aqualaboModbusSensorsClass::postTransmission);
 
 }
 //!*************************************************************

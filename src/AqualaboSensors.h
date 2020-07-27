@@ -36,7 +36,8 @@
 // Include the neccesary libraries.
 /////////////////////////////////////////////////////////////////////////////
 
-#include "ModbusMaster.h"
+//#include "ModbusMaster.h"
+#include "ModbusMasterFP.h"
 /******************************************************************************
  * Definitions & Declarations
  ******************************************************************************/
@@ -200,10 +201,9 @@
 class aqualaboModbusSensorsClass{
 	public:
 		// Public functions
-		aqualaboModbusSensorsClass(void);
-		
-	    void begin(uint8_t slave, Stream &serial);
-        void begin(uint8_t slave, Stream &serial, int dePin, int rePin);
+		aqualaboModbusSensorsClass();
+	    void begin(uint8_t slave, Stream&);
+        void begin(uint8_t slave, int dePin, int rePin, Stream&);
 		uint8_t readWaitingTime();
 		
 		void clearBuffer();
@@ -306,13 +306,15 @@ struct sensorC4EVector
   char sensorSerialNumber[14];
 };
 	sensorC4EVector sensorC4E;
-		
+
+	void preTransmission(bool);
+	void postTransmission(bool);
+
 	private:
-	  Stream* _serial; 
-	  ModbusMaster sensor;                                           ///< reference to serial port object
+	  Stream& _modbusport; 
+	  ModbusMasterFP sensor;                                           ///< reference to serial port object
       uint8_t  _u8MBSlave;
-      int _dePin;
-      int _rePin;
+      int _dePin, _rePin;
 
       bool _transmisionBegun;
       unsigned long _baudrate;
