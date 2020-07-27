@@ -31,7 +31,7 @@
 * Includes
 ******************************************************************************/
 #include <inttypes.h>
-
+#include <Arduino.h>
 /////////////////////////////////////////////////////////////////////////////
 // Include the neccesary libraries.
 /////////////////////////////////////////////////////////////////////////////
@@ -197,15 +197,13 @@
 	This Class defines all the variables and functions used for
 	managing the Modbus Sensors
  */
-class aqualaboModbusSensorsClass
-{
+class aqualaboModbusSensorsClass{
 	public:
-
 		// Public functions
-		aqualaboModbusSensorsClass();
+		aqualaboModbusSensorsClass(void);
 		
-		void initCommunication();
-		
+	    void begin(uint8_t slave, Stream &serial);
+        void begin(uint8_t slave, Stream &serial, int dePin, int rePin);
 		uint8_t readWaitingTime();
 		
 		void clearBuffer();
@@ -264,9 +262,6 @@ class aqualaboModbusSensorsClass
 		uint16_t address_offset;
 		uint16_t address_slope;
 		
-		// For Mdobus management
-		ModbusMaster sensor;
-		
 		//Calibration variables
 		uint16_t temporaryCoefficientListBuffer;
 
@@ -287,14 +282,19 @@ class aqualaboModbusSensorsClass
 		foo2;
 		
 	private:
+	  Stream* _serial; 
+	  ModbusMaster sensor;                                           ///< reference to serial port object
+      uint8_t  _u8MBSlave;
+      int _dePin;
+      int _rePin;
 
+      bool _transmisionBegun;
+      unsigned long _baudrate;
+      uint16_t _config;
 
 };
 
-
 // object to manage Modbus sensors in Xtreme boards
 extern aqualaboModbusSensorsClass aqualaboModbusSensors;
-
-
 
 #endif

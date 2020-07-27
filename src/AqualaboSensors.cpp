@@ -36,13 +36,13 @@
 /***********************************************************************
  * Class contructors
  ***********************************************************************/
-aqualaboModbusSensorsClass::aqualaboModbusSensorsClass()
+/*aqualaboModbusSensorsClass::aqualaboModbusSensorsClass()
 {
 	waitingTime = DEFAULT_WAITING_TIME;
 	sensorAddr = DEFAULT_ADDRESS;
 	temporaryCoefficientListBuffer = 0;
 }
-
+*/
 
 /***********************************************************************
  * Methods of the Class
@@ -54,18 +54,73 @@ aqualaboModbusSensorsClass::aqualaboModbusSensorsClass()
 //!	Param : void
 //!	Returns: void
 //!*************************************************************
-void aqualaboModbusSensorsClass::initCommunication()
+/*void aqualaboModbusSensorsClass::initCommunication()
 {
   //sensor = ModbusMaster(Serial2, sensorAddr);
   Serial2.begin(9600);
   
   // The sensor uses 9600 bps speed communication
   sensor.begin(1, Serial2);
+
+  sensor.preTransmission(preTransmission);
+  sensor.postTransmission(postTransmission);
+
+
   
   clearBuffer();
 }
+*/
+aqualaboModbusSensorsClass::aqualaboModbusSensorsClass(void){
+	waitingTime = DEFAULT_WAITING_TIME;
+	sensorAddr = DEFAULT_ADDRESS;
+	temporaryCoefficientListBuffer = 0;
+}
+/*
+void preTransmission()
+{
+  digitalWrite(_rePin, 1);
+  digitalWrite(_dePin, 1);
+}
 
+void postTransmission()
+{
+  digitalWrite(_rePin, 0);
+  digitalWrite(_dePin, 0);
+}
+*/
+void aqualaboModbusSensorsClass::begin(uint8_t slave, Stream &serial)
+{
+  _u8MBSlave = slave;
+  _serial = &serial;
+  // communicate with Modbus slave ID 2 over Serial (port 0)
+  sensor.begin(_u8MBSlave, *_serial);
+  //RS485.begin(ctx_rtu->baud, ctx_rtu->config);
+}
 
+void aqualaboModbusSensorsClass::begin(uint8_t slave, Stream &serial, int dePin, int rePin )
+{
+  _dePin = dePin;
+  _rePin = rePin;
+  if (_dePin > -1) {
+    pinMode(_dePin, OUTPUT);
+    digitalWrite(_dePin, LOW);
+  }
+
+  if (_rePin > -1) {
+    pinMode(_rePin, OUTPUT);
+    digitalWrite(_rePin, HIGH);
+  }
+
+  _u8MBSlave = slave;
+  _serial = &serial;
+  // communicate with Modbus slave ID 2 over Serial (port 0)
+  sensor.begin(_u8MBSlave, *_serial);
+
+   // TODO: Callbacks allow us to configure the RS485 transceiver correctly
+  //sensor.preTransmission(preTransmission);
+  //sensor.postTransmission(postTransmission);
+
+}
 //!*************************************************************
 //!	Name:	searchAddress()
 //!	Description: check if slave address is correct
@@ -76,7 +131,7 @@ uint8_t aqualaboModbusSensorsClass::searchAddress(uint8_t _sensorAddr)
 {
 	sensorAddr = _sensorAddr;
 	
-	initCommunication();
+	//initCommunication();
 	
 	uint8_t status = 0xFF;
 	uint8_t retries = 0;
@@ -201,7 +256,7 @@ uint8_t aqualaboModbusSensorsClass::searchAddress(uint8_t _sensorAddr)
 //!*************************************************************
 uint8_t aqualaboModbusSensorsClass::changeAddress(uint8_t _sensorAddr)
 {
-	initCommunication();
+	//initCommunication();
 	
 	uint8_t status = 0xFF;
 	uint8_t retries = 0;
@@ -247,7 +302,7 @@ uint8_t aqualaboModbusSensorsClass::changeAddress(uint8_t _sensorAddr)
 //!*************************************************************
 uint8_t aqualaboModbusSensorsClass::initSensor()
 {
-	initCommunication();
+	//initCommunication();
 	
 	//Get the necessary waiting time to get measures after asking for them
 	if(readWaitingTime() != 0)
@@ -290,7 +345,7 @@ uint8_t aqualaboModbusSensorsClass::initSensor()
 //!*************************************************************
 uint8_t aqualaboModbusSensorsClass::initSensor(uint8_t range)
 {
-	initCommunication();
+	//initCommunication();
 	
 	//Get the necessary waiting time to get measures after asking for them
 	if(readWaitingTime() != 0)
@@ -355,7 +410,7 @@ uint8_t aqualaboModbusSensorsClass::initSensor(uint8_t range)
 //!*************************************************************
 uint8_t aqualaboModbusSensorsClass::initSensor(uint8_t range, uint8_t avg)
 {
-	initCommunication();
+	//initCommunication();
 	
 	//Get the necessary waiting time to get measures after asking for them
 	if(readWaitingTime() != 0)
@@ -416,7 +471,7 @@ uint8_t aqualaboModbusSensorsClass::initSensor(uint8_t range, uint8_t avg)
 //!*************************************************************
 uint8_t aqualaboModbusSensorsClass::writeParamConfig(uint8_t paramNumber, uint8_t range)
 {
-	initCommunication();
+	//initCommunication();
 	
 	uint8_t status = 0xFF;
 	uint8_t retries = 0;
@@ -498,7 +553,7 @@ uint16_t aqualaboModbusSensorsClass::readParamConfig(uint8_t paramNumber)
 	uint8_t status = 0xFF;
 	uint8_t retries = 0;
 	
-	initCommunication();
+	//initCommunication();
 	
 	switch(paramNumber)
 	{
@@ -570,7 +625,7 @@ uint8_t aqualaboModbusSensorsClass::readEnableCompensationFlags(uint8_t paramNum
 	uint8_t retval = 0x00;
 	uint8_t config_reg;
 
-	initCommunication();
+	//initCommunication();
 
 	uint16_t address;
 	
@@ -680,7 +735,7 @@ uint8_t aqualaboModbusSensorsClass::enableCompensation(uint8_t paramNumber, uint
 		config_reg_bit_mask |= MEAS_TYPE_COMP_VAL_2_BIT;
 	}
 
-	initCommunication();
+	//initCommunication();
 
 	while ((status !=0) && (retries < 10))
 	{
@@ -798,7 +853,7 @@ uint8_t aqualaboModbusSensorsClass::setCompValue(uint8_t compensationNumber, flo
 //!*************************************************************
 uint8_t aqualaboModbusSensorsClass::writeCalibrationStandard(uint16_t address, float value)
 {
-	initCommunication();
+	//initCommunication();
 	
 	uint8_t status = 0xFF;
 	uint8_t retries = 0;
@@ -847,7 +902,7 @@ float aqualaboModbusSensorsClass::readCalibrationStandard(uint16_t address)
 	uint8_t status = 0xFF;
 	uint8_t retries = 0;
 	
-	initCommunication();
+	//initCommunication();
 	
 	while ((status !=0) && (retries < 10))
 	{
@@ -895,7 +950,7 @@ float aqualaboModbusSensorsClass::readCalibrationStandard(uint16_t address)
 //!*************************************************************
 uint8_t aqualaboModbusSensorsClass::restoreToFactoryCalibration(uint8_t parameter)
 {
-	initCommunication();
+	//initCommunication();
 	
 	uint8_t status = 0xFF;
 	uint8_t retries = 0;
@@ -1351,7 +1406,7 @@ uint8_t aqualaboModbusSensorsClass::calibrate(uint8_t sensor, uint8_t parameter,
 //!*************************************************************
 uint8_t aqualaboModbusSensorsClass::writeCalibrationValidation(uint8_t value)
 {
-	initCommunication();
+	//initCommunication();
 	
 	uint8_t status = 0xFF;
 	uint8_t retries = 0;
@@ -1425,7 +1480,7 @@ uint8_t aqualaboModbusSensorsClass::writeCalibrationValidation(uint8_t value)
 //!*************************************************************
 uint8_t aqualaboModbusSensorsClass::readTemporaryCoefficientList()
 {
-	initCommunication();
+	//initCommunication();
 	
 	uint16_t average = 0;
 	
@@ -1478,7 +1533,7 @@ uint8_t aqualaboModbusSensorsClass::readTemporaryCoefficientList()
 //!*************************************************************
 uint8_t aqualaboModbusSensorsClass::writeTemporaryCoefficientList(uint16_t coefficient)
 {
-	initCommunication();
+	//initCommunication();
 	
 	uint8_t status = 0xFF;
 	uint8_t retries = 0;
@@ -1575,7 +1630,7 @@ uint8_t aqualaboModbusSensorsClass::resetTemporaryCalibrationData(uint8_t return
 {
 	//Write '0x00000000 ' at 0x014C address 
 	//List of temporary coefficients to be used in measurement calculation
-	initCommunication();
+	//initCommunication();
 	
 	uint8_t status = 0xFF;
 	uint8_t retries = 0;
@@ -1671,7 +1726,7 @@ uint8_t aqualaboModbusSensorsClass::resetTemporaryCalibrationData(uint8_t return
 //!*************************************************************
 uint8_t aqualaboModbusSensorsClass::writeAverage(uint8_t avg)
 {
-	initCommunication();
+	//initCommunication();
 	
 	uint8_t status = 0xFF;
 	uint8_t retries = 0;
@@ -1715,7 +1770,7 @@ uint8_t aqualaboModbusSensorsClass::writeAverage(uint8_t avg)
 //!*************************************************************
 uint8_t aqualaboModbusSensorsClass::readWaitingTime()
 {
-	initCommunication();
+	//initCommunication();
 	
 	uint8_t status = 0xFF;
 	uint8_t retries = 0;
@@ -1760,7 +1815,7 @@ uint8_t aqualaboModbusSensorsClass::readWaitingTime()
 //!*************************************************************
 uint16_t aqualaboModbusSensorsClass::readAverage()
 {
-	initCommunication();
+	//initCommunication();
 	
 	uint16_t average = 0;
 	
@@ -1823,7 +1878,7 @@ void aqualaboModbusSensorsClass::clearBuffer()
 uint8_t aqualaboModbusSensorsClass::readSerialNumber(char *sensorSerialNumber)
 {
 
-	initCommunication();
+	//initCommunication();
 	
 	uint8_t status = 0xFF;
 	uint8_t retries = 0;
@@ -1915,7 +1970,7 @@ void aqualaboModbusSensorsClass::setParametersBySensor(uint8_t sensorType)
 //!*************************************************************
 uint8_t aqualaboModbusSensorsClass::readMeasures(float &parameter1, float &parameter2, float &parameter3, float &parameter4)
 {
-	initCommunication();
+	//initCommunication();
 	
 	uint8_t status = 0xFF;
 	uint8_t retries = 0;
@@ -2006,7 +2061,7 @@ uint8_t aqualaboModbusSensorsClass::readMeasures(	float &parameter1,
 													float &parameter4, 
 													float &parameter5)
 {
-	initCommunication();
+	//initCommunication();
 	
 	uint8_t status = 0xFF;
 	uint8_t retries = 0;
@@ -2098,7 +2153,7 @@ uint8_t aqualaboModbusSensorsClass::readMeasures(	float &parameter1,
 //!*************************************************************
 uint8_t aqualaboModbusSensorsClass::readExtendedMeasures(float &parameter1, float &parameter2, float &parameter3, float &parameter4, float &parameter5)
 {
-	initCommunication();
+	//initCommunication();
 	
 	uint8_t status = 0xFF;
 	uint8_t retries = 0;
@@ -2182,5 +2237,5 @@ uint8_t aqualaboModbusSensorsClass::readExtendedMeasures(float &parameter1, floa
 }
 
 
-aqualaboModbusSensorsClass	aqualaboModbusSensors = aqualaboModbusSensorsClass();
+//aqualaboModbusSensorsClass	aqualaboModbusSensors = aqualaboModbusSensorsClass(SERIAL_PORT_HARDWARE,);
 
