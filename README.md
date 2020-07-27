@@ -6,22 +6,33 @@
 
 ![LibraryBuild](https://github.com/ElectronicCats/AqualaboSensorsLibrary/workflows/LibraryBuild/badge.svg?branch=master)
 
-
-This is an Arduino Library for Arduino Compatible with Agualabo Sensors.
-
 ## Introduction
 
+This is an Arduino Library for Arduino Compatible with Agualabo Sensors created by Electronic Cats.
 
 ## Description
 
+This is based in the work Libelium is a port for Arduino Board and Agualabo Sensors, the protocol is Modbus (SDI-12 is not comptible).
+
+## Sensores Compatibles
+ 
+**Working and tested**
+ - C4E /Salinite/Temp PONSEL
+
+**Wihtout Test**
+- pH / Redox / Temperature PONSEL
+- ODO / Temperature PONSEL
+- Nephelo/TU / Temperature PONSEL / NTU
+- CTZ/Salinity/Temp PONSEL 
+- TU/MES/VB 5 PONSEL
 
 ## Dependencies
 
 When using ModBusMasterFB Library, you must install the [ModBusMasterFB Library](https://github.com/apanasara/ModbusMasterFP) library.
 
-## API
-
-See [API.md](API.md).
+## TODO
+- Test other sensors and examples
+- Compatible with other port Serial (Serial2 default)
 
 ### Maintainer
 
