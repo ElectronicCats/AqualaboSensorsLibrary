@@ -27,9 +27,9 @@ void setup() {
   Serial.println("Modbus Sensor C4E");
   
   aqualaboModbusSensors.begin(30, 30, 21, Serial2 );
-  Serial.print("Init sensor");
+  Serial.println("Init sensor");
   aqualaboModbusSensors.initSensor();
-  Serial.print("Ready... ");
+  Serial.println("Ready... ");
 }
 
 void loop() {

@@ -17,7 +17,7 @@ This is an Arduino Library for Arduino Compatible with Agualabo Sensors.
 
 ## Dependencies
 
-When using ModBusMaster Library, you must install the [ModBusMaster Library](https://github.com/4-20ma/ModbusMaster) library. You can find it in both the Arduino IDE and PlatformIO library managers.
+When using ModBusMasterFB Library, you must install the [ModBusMasterFB Library](https://github.com/apanasara/ModbusMasterFP) library.
 
 ## API
 

@@ -30,7 +30,6 @@
 
 #include "AqualaboSensors.h"
 #include "Arduino.h"
-#include <ModbusMaster.h>
 
 
 /***********************************************************************
