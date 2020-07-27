@@ -34,7 +34,7 @@ jobs:
           #- arduino:avr:uno
           #- arduino:avr:leonardo
           - arduino:samd:nano_33_iot
-          - arduino:samd:mkr1300
+          -   arduino:samd:mkrwan1300
           #- esp8266:esp8266:huzzah:eesz=4M3M,xtal=80
           #- esp32:esp32:featheresp32:FlashFreq=80
 
@@ -49,7 +49,7 @@ jobs:
           
           - arduino-boards-fqbn: arduino:samd:nano_33_iot
           
-          - arduino-boards-fqbn: arduino:samd:mkr130
+          - arduino-boards-fqbn: arduino:samd:mkrwan1300
 
           #- arduino-boards-fqbn: esp8266:esp8266:huzzah:eesz=4M3M,xtal=80
           #  platform-url: https://arduino.esp8266.com/stable/package_esp8266com_index.json
