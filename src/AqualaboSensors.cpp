@@ -2236,6 +2236,47 @@ uint8_t aqualaboModbusSensorsClass::readExtendedMeasures(float &parameter1, floa
 	return 1;
 }
 
+/*!
+  \brief Reads the sensor data
+  \param void
+  \return void
+*/
+uint8_t aqualaboModbusSensorsClass::read()
+{
+  // Initialize variables
+  sensorC4E.temperature = 0;
+  sensorC4E.conductivity = 0;
+  sensorC4E.salinity = 0;
+  sensorC4E.totalDissolvedSolids = 0;
+
+  uint8_t response = 0;
+  uint8_t validMeasure = 0;
+  uint8_t retries = 0;
+
+  while ((validMeasure == 0) && (retries < 3))
+  {
+      response = readMeasures(sensorC4E.temperature,
+                          sensorC4E.conductivity,
+                          sensorC4E.salinity,
+                          sensorC4E.totalDissolvedSolids);
+    
+
+    if ((sensorC4E.temperature != 0)
+    || (sensorC4E.conductivity != 0)
+    || (sensorC4E.salinity != 0)
+    || (sensorC4E.totalDissolvedSolids != 0))
+    {
+      validMeasure = 1;
+    }
+    else
+    {
+      delay(1000);
+    }
+    retries++;
+  }
+
+  return response;
+}
 
 //aqualaboModbusSensorsClass	aqualaboModbusSensors = aqualaboModbusSensorsClass(SERIAL_PORT_HARDWARE,);
 

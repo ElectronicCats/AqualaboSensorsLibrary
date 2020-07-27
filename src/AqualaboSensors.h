@@ -212,6 +212,8 @@ class aqualaboModbusSensorsClass{
 		uint8_t initSensor(uint8_t range, uint8_t avg);
 		uint8_t initSensor(uint8_t range);
 		uint8_t initSensor();
+
+		uint8_t read();
 		
 		// Reading functions
 		uint8_t readMeasures(float &parameter1, 
@@ -280,6 +282,30 @@ class aqualaboModbusSensorsClass{
 			uint16_t uint16t;
 		}
 		foo2;
+
+		/*!
+ * \struct sensorC4EVector
+ * \brief Struct to store data of the C4E sensor
+ */
+
+struct sensorC4EVector
+{
+  //! Variable: stores measured temperature in Celsius degrees
+  float temperature;
+
+  //! Variable: stores measured conductivity in μS/cm
+  float conductivity;
+
+  //! Variable: stores measured salinity in ppt
+  float salinity;
+
+  //! Variable: stores measured total dissolved solids in ppm
+  float totalDissolvedSolids;
+
+  //Sensor serial number variable
+  char sensorSerialNumber[14];
+};
+	sensorC4EVector sensorC4E;
 		
 	private:
 	  Stream* _serial; 
