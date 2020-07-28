@@ -17,27 +17,44 @@
 *********************************************************************/
 #include <AqualaboSensors.h>
 
+/*!
+  We're using a MAX485-compatible RS485 Transceiver.
+  Rx/Tx is hooked up to the hardware serial port at 'Serial2'.
+  The Data Enable and Receiver Enable pins are hooked up as follows:
+*/
+
+// instantiate aqualaboModbusSensors object
 aqualaboModbusSensorsClass aqualaboModbusSensors;
 
 void setup() {
   Serial.begin(9600);
+
+  // Modbus communication runs at 9600 baud
   Serial2.begin(9600);
   
   while (!Serial);
   Serial.println("Modbus Sensor C4E");
   
+  //Modbus slave ID 1, pin De, Pin Re, Serial
   aqualaboModbusSensors.begin(30, 30, 21, Serial2 );
   
+  // Setups the sensor configuration paramenters 
   Serial.println("Init sensor");
   aqualaboModbusSensors.initSensor();
+  
   Serial.println("Ready... ");
 }
 
 void loop() {
   
+  // Reads the sensor data
   aqualaboModbusSensors.read();
+
+  // Variable: stores measured temperature in Celsius degrees
   Serial.print("Temperature: ");
   Serial.println(aqualaboModbusSensors.sensorC4E.temperature, 2);
+  
+  // Variable: stores measured conductivity in μS/cm
   Serial.print("Conductivity: ");
   Serial.println(aqualaboModbusSensors.sensorC4E.conductivity, 2);
   
