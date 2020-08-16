@@ -2216,12 +2216,26 @@ uint8_t aqualaboModbusSensorsClass::readExtendedMeasures(float &parameter1, floa
 	return 1;
 }
 
+void aqualaboModbusSensorsClass::exitCalibration()
+{
+	//printLine();
+	Serial.println(F("Exiting the calibration without considering anything"));
+	resetTemporaryCalibrationData(RETURN_AVG_TO_1);
+}
+
+void aqualaboModbusSensorsClass::exitCalibrationAndStopElectronicZero()
+{
+	//printLine();
+	Serial.println(F("Exiting the calibration without considering anything"));
+	resetTemporaryCalibrationData(RETURN_AVG_TO_1_AND_STOP_ELECTRONIC_ZERO);
+}
+
 /*!
   \brief Reads the sensor data
   \param void
   \return void
 */
-uint8_t aqualaboModbusSensorsClass::read()
+uint8_t aqualaboModbusSensorsClass::read_C4E()
 {
   // Initialize variables
   sensorC4E.temperature = 0;
@@ -2258,5 +2272,709 @@ uint8_t aqualaboModbusSensorsClass::read()
   return response;
 }
 
+/* readSerialNumber: Gets the serial number of the sensor
+	parameters: void
+	return: 1 if ok, 0 if something fails
+*/
+/*
+uint8_t aqualaboModbusSensorsClass::readSerialNumber_C4E()
+{
+	memset(sensorSerialNumber, 0x00, sizeof(sensorC4E.sensorSerialNumber));
+
+	//Socket E is the only with RS-485
+    uint8_t response = aqualaboModbusSensorsClass.readSerialNumber(sensorC4E.sensorSerialNumber);
+}
+*/
+/*!
+	\brief menu assisted calibration process
+	\param sensorType and parameter
+	\return void
+*/
+void aqualaboModbusSensorsClass::calibrationProcess_C4E(uint8_t parameter)
+{
+	const uint8_t inputSize = 100;
+	char input[inputSize];
+	uint8_t response = 0;
+	float offset = 0;
+	float slope = 0;
+
+	//printBigLine();
+	Serial.println(F("MENU ASSISTED CALIBRATION PROCESS"));
+	Serial.println(F("C4E sensor"));
+
+	if (parameter == TEMPERATURE)
+	{
+		Serial.println(F("Temperature parameter"));
+		//printBigLine();
+		Serial.println(F("0. Introduction:"));
+		Serial.println(F("\r\nThis is a two-point calibration method. At the end of the process the results"));
+		Serial.println(F("of the calibration will be stored in the FLASH memory of the sensor for"));
+		Serial.println(F("future uses."));
+		Serial.println(F("\r\nThe sensor is calibrated ex works, meaning that no calibration is required"));
+		Serial.println(F("before initial startup. During operation the sensor should be calibrated if the"));
+		Serial.println(F("measured values begin to drift."));
+		Serial.println(F("\r\nRinse the sensor in clean water and dry it with a soft cloth or an absorbent"));
+		Serial.println(F("paper before each calibration."));
+		Serial.println(F("\r\nFor this process it is advisable to use a reference temperature sensor."));
+		Serial.println(F("\r\nTo exit the calibration without considering anything please insert 'Q' to Quit"));
+		Serial.println(F("and press Enter."));
+		//printLine();
+		Serial.println(F("1. Insert the first calibration standard value you will use (offset) and press Enter."));
+		Serial.println(F("0*C is recommended (Sensor fully immersed in an ice/water bath)"));
+		Serial.println(F("Example: 0.350"));
+		Serial.print(F("> "));
+
+
+		//serialClean();
+		while ( getData(input, inputSize) == 0 );
+		Serial.println(input);
+		if ((find((uint8_t*)input, strlen(input), "Q") == 1) || (find((uint8_t*)input, strlen(input), "q") == 1))
+		{
+			//Exit discarding changes
+			exitCalibration();
+		}
+		else
+		{
+			//In step 1 we reset temporary calibration data and indicate the range (no range)
+			calibrate(C4E, TEMPERATURE, STEP_1, NULL);
+
+			offset = atof(input);
+
+			//printLine();
+			Serial.print(F("2. Set sensor at selected offset: "));
+			Serial.print(offset, 4);
+			Serial.println(F("*C."));
+			Serial.println(F("Wait some minutes until the measure stabilizes."));
+			Serial.println(F("Observing the offset in this step will help you assess whether calibration"));
+			Serial.println(F("is necessary or not, depending on the precision required in your application."));
+			Serial.println(F("Then insert 'N' for Next step and press Enter."));
+
+			//serialClean();
+			memset(input, 0x00, sizeof(input) );
+			uint16_t j = 300;
+			while ((find((uint8_t*)input, strlen(input), "N") != 1) && (find((uint8_t*)input, strlen(input), "Q") != 1)
+						&& (find((uint8_t*)input, strlen(input), "n") != 1) && (find((uint8_t*)input, strlen(input), "q") != 1))
+			{
+				j++;
+				if (j >= 300)
+				{
+					j = 0;
+
+					read_C4E();
+					Serial.println();
+					Serial.print(sensorC4E.temperature, 2);
+					Serial.println(F("*C"));
+					Serial.print(F("> "));
+				}
+
+				getData(input, inputSize);
+				delay(10);
+			}
+
+			Serial.println(input);
+			if ((find((uint8_t*)input, strlen(input), "Q") == 1) || (find((uint8_t*)input, strlen(input), "q") == 1))
+			{
+				//Exit discarding changes
+				exitCalibration();
+			}
+			else
+			{
+				//In step 2 user select calibration standard 1 (offset)
+				//This step must be done after stabilizing and measuring in water with
+				//the selected value using readMeasures function previosly
+				calibrate(C4E, TEMPERATURE, STEP_2, offset);
+
+				//printLine();
+				Serial.println(F("3. Insert the second calibration standard value (slope) and press Enter."));
+				Serial.println(F("25*C is recommended (Sensor fully immersed in a bath heated at 25*C)"));
+				Serial.println(F("Example: 25.140"));
+				Serial.print(F("> "));
+
+				//serialClean();
+				while ( getData(input, inputSize) == 0 );
+				Serial.println(input);
+				if ((find((uint8_t*)input, strlen(input), "Q") == 1) || (find((uint8_t*)input, strlen(input), "q") == 1))
+				{
+					//Exit discarding changes
+					exitCalibration();
+				}
+				else
+				{
+
+					slope = atof(input);
+
+					//printLine();
+					Serial.print(F("4. Immerse the sensor in water at your selected slope: "));
+					Serial.print(slope, 4);
+					Serial.println(F("*C."));
+					Serial.println(F("Wait some minutes until the measure stabilizes."));
+					Serial.println(F("Then insert 'N' for Next step and press Enter."));
+
+					//serialClean();
+
+					j = 300;
+					while ((find((uint8_t*)input, strlen(input), "N") != 1) && (find((uint8_t*)input, strlen(input), "Q") != 1)
+								&& (find((uint8_t*)input, strlen(input), "n") != 1) && (find((uint8_t*)input, strlen(input), "q") != 1))
+					{
+						j++;
+						if (j >= 300)
+						{
+							j = 0;
+
+							read_C4E();
+							Serial.println();
+							Serial.print(sensorC4E.temperature, 2);
+							Serial.println(F("*C"));
+							Serial.print(F("> "));
+						}
+
+						getData(input, inputSize);
+						delay(10);
+					}
+
+					Serial.println(input);
+					if ((find((uint8_t*)input, strlen(input), "Q") == 1) || (find((uint8_t*)input, strlen(input), "q") == 1))
+					{
+						//Exit discarding changes
+						exitCalibration();
+					}
+					else
+					{
+						//In step 3 user select calibration standard 2 (slope)
+						//This step must be done after stabilizing and measuring in water with
+						//the selected value
+						calibrate(C4E, TEMPERATURE, STEP_3, slope);
+
+						//printLine();
+						Serial.println(F("5. In order to validate the calibration some data is required."));
+						Serial.println(F("Please insert operator's name (up to 16 letters) and press Enter."));
+						Serial.print(F("> "));
+
+						//serialClean();
+
+						uint8_t validInput = 0;
+						while (!validInput)
+						{
+							while (getData(input, inputSize) == 0);
+
+							if (strlen(input) > 15)
+							{
+								Serial.println(F("Invalid name."));
+								Serial.println(F("Please insert calibration operator's name (up to 16 letters)"));
+								Serial.print(F("> "));
+								//serialClean();
+							}
+							else
+							{
+								validInput = 1;
+							}
+						}
+
+						char calibrationOperatorsName_temp[17];
+						memset(calibrationOperatorsName_temp, 0x00, sizeof(calibrationOperatorsName_temp));
+						strcpy(calibrationOperatorsName_temp, input);
+
+
+						for (int k = strlen(input); k < 16; k++)
+						{
+							calibrationOperatorsName_temp[k] = ' ';
+						}
+
+						Serial.println(calibrationOperatorsName_temp);
+						fillOperatorsName(calibrationOperatorsName_temp);
+
+						//printLine();
+						Serial.println(F("6.Please insert calibration date."));
+
+
+						int year;
+						int month;
+						int day;
+						int hour;
+						int minute;
+
+						char calibrationDate_temp[17];
+						memset(calibrationDate_temp, 0x00, sizeof(calibrationDate_temp));
+						/////////////////////////////////
+						//	YEAR
+						/////////////////////////////////
+						//serialClean();
+						do
+						{
+							Serial.println("Insert year [yy] and press Enter.");
+							Serial.print(F("> "));
+						}
+						while ( getDate(input, inputSize, 2) != true );
+
+						year = atoi(input);
+						Serial.println(year);
+
+
+						/////////////////////////////////
+						//	MONTH
+						/////////////////////////////////
+						//serialClean();
+						do
+						{
+							Serial.println("Insert month [mm] and press Enter.");
+							Serial.print(F("> "));
+						}
+						while ( getDate(input, inputSize, 2) != true );
+
+						month = atoi(input);
+						Serial.println(month);
+
+
+						/////////////////////////////////
+						//	DAY
+						/////////////////////////////////
+						//serialClean();
+						do
+						{
+							Serial.println("Insert day [dd] and press Enter.");
+							Serial.print(F("> "));
+						}
+						while ( getDate(input, inputSize, 2) != true );
+
+						day = atoi(input);
+						Serial.println(day);
+
+
+						/////////////////////////////////
+						//	HOUR
+						/////////////////////////////////
+						//serialClean();
+						do
+						{
+							Serial.println("Insert Hour [HH] and press Enter.");
+							Serial.print(F("> "));
+						}
+						while ( getDate(input, inputSize, 2) != true );
+
+						hour = atoi(input);
+						Serial.println(hour);
+
+						/////////////////////////////////
+						//	MINUTE
+						/////////////////////////////////
+						//serialClean();
+						do
+						{
+							Serial.println("Insert minute [MM] and press Enter.");
+							Serial.print(F("> "));
+						}
+						while ( getDate(input, inputSize, 2) != true );
+
+						minute = atoi(input);
+						Serial.println(minute);
+
+
+						/////////////////////////////////
+						//	create buffer
+						/////////////////////////////////
+						sprintf(calibrationDate_temp, "%02u%02u%02u%02u20%02u",
+										minute,
+										hour,
+										day,
+										month,
+										year );
+
+
+						calibrationDate_temp[12] = ' ';
+						calibrationDate_temp[13] = ' ';
+						calibrationDate_temp[14] = ' ';
+						calibrationDate_temp[15] = ' ';
+
+						//Serial.println(calibrationDate_temp);
+
+						fillCalibrationDate(calibrationDate_temp);
+
+
+						//In step 4 user validates the entire calibration entering operator's name and date
+						calibrate(C4E, TEMPERATURE, STEP_4, NULL);
+
+						//printLine();
+
+						Serial.println(F("Calibration successfully finished!"));
+					}
+				}
+			}
+		}
+		//printLine();
+		Serial.println(F("End of calibration process"));
+		//printBigLine();
+	}
+
+
+	if (parameter == CONDUCTIVITY)
+	{
+		uint8_t range = 0;
+
+		Serial.println(F("Conductivity parameter"));
+		//printBigLine();
+		Serial.println(F("0. Introduction:"));
+		Serial.println(F("\r\nThis is a two-point calibration method. At the end of the process the results"));
+		Serial.println(F("of the calibration will be stored in the FLASH memory of the sensor for"));
+		Serial.println(F("future uses."));
+		Serial.println(F("\r\nThe sensor is calibrated ex works, meaning that no calibration is required"));
+		Serial.println(F("before initial startup. During operation the sensor should be calibrated if the"));
+		Serial.println(F("measured values begin to drift."));
+		Serial.println(F("\r\nRinse the sensor in clean water and dry it with a soft cloth or an absorbent"));
+		Serial.println(F("paper before each calibration."));
+		Serial.println(F("\r\nWith this process only one range will be calibrated, if desired, carry out"));
+		Serial.println(F("this process for each range to be calibrated a maximum of 4 times."));
+		Serial.println(F("\r\nTo exit the calibration without considering anything please insert 'Q' to Quit"));
+		Serial.println(F("and press Enter."));
+		//printLine();
+		Serial.println(F("1. Insert the range to be calibrated from the 4 available ranges and press Enter:"));
+		Serial.println(F("1 for Range 1 (0 / 200 uS/cm)"));
+		Serial.println(F("2 for Range 2 (0 / 2000 uS/cm)"));
+		Serial.println(F("3 for Range 3 (0 / 20 mS/cm)"));
+		Serial.println(F("4 for Range 4 (0 / 200 mS/cm)"));
+		Serial.println(F("Example: 2"));
+		Serial.print(F("> "));
+
+
+		//serialClean();
+		while ( getData(input, inputSize) == 0 );
+
+		range = atoi(input);
+		Serial.println(range, DEC);
+
+		//!*************************************************************
+		//! Name: init(uint8_t range)
+		//!
+		//! Note: Only works in Socket E
+		//!
+		//! Description: Initializes the sensor. It's necessary to initialize the sensor
+		//! once in each code (in setup) before using it, since some parameters are
+		//! configured and initial information is extracted from the sensor
+		//!
+		//! Param: range (Range for NTU measure)
+		//!				select from: RANGE_AUTOMATIC, RANGE_1, RANGE_2, RANGE_3, RANGE_4 (see guide for more info)
+		//!
+		//! Returns: 0 is OK, 1 if error
+		//!*************************************************************
+		response = initSensor(range);
+		if (response)
+		{
+			Serial.println(F("Error initializing the sensor. \r\nCheck the sensor and restart the code."));
+		}
+
+
+
+		//printLine();
+		Serial.println(F("2. Insert the first calibration standard value you will use (offset) and press Enter."));
+		Serial.println(F("0 uS/cm is recommended (sensor exposed to the air)"));
+		Serial.println(F("Example: 0"));
+		Serial.print(F("> "));
+
+
+		//serialClean();
+		while ( getData(input, inputSize) == 0 );
+		Serial.println(input);
+		if ((find((uint8_t*)input, strlen(input), "Q") == 1) || (find((uint8_t*)input, strlen(input), "q") == 1))
+		{
+			//Exit discarding changes
+			exitCalibration();
+		}
+		else
+		{
+			//In step 1 we reset temporary calibration data and indicate the range
+			calibrate(C4E, PARAMETER_1, STEP_1, (float)range);
+
+			offset = atof(input);
+
+			//printLine();
+			Serial.print(F("3. Immerse the sensor in a solution at your selected offset: "));
+			Serial.print(offset, 4);
+			Serial.println(F(" uS/cm."));
+			Serial.println(F("Wait some minutes until the measure stabilizes.."));
+			Serial.println(F("Observing the offset in this step will help you assess whether calibration"));
+			Serial.println(F("is necessary or not, depending on the precision required in your application."));
+			Serial.println(F("Then insert 'N' for Next step and press Enter."));
+
+			//serialClean();
+			memset(input, 0x00, sizeof(input) );
+			uint16_t j = 300;
+			while ((find((uint8_t*)input, strlen(input), "N") != 1) && (find((uint8_t*)input, strlen(input), "Q") != 1)
+						&& (find((uint8_t*)input, strlen(input), "n") != 1) && (find((uint8_t*)input, strlen(input), "q") != 1))
+			{
+				j++;
+				if (j >= 300)
+				{
+					j = 0;
+
+					read_C4E();
+					Serial.println();
+					Serial.print(sensorC4E.conductivity, 2);
+					Serial.println(F(" uS/cm"));
+					Serial.print(F("> "));
+				}
+
+				getData(input, inputSize);
+				delay(10);
+			}
+
+			Serial.println(input);
+			if ((find((uint8_t*)input, strlen(input), "Q") == 1) || (find((uint8_t*)input, strlen(input), "q") == 1))
+			{
+				//Exit discarding changes
+				exitCalibration();
+			}
+			else
+			{
+				//In step 2 user select calibration standard 1 (offset)
+				//This step must be done after stabilizing and measuring in water with
+				//the selected value using readMeasures function previosly
+				calibrate(C4E, PARAMETER_1, STEP_2, offset);
+
+				//printLine();
+				Serial.println(F("4. Insert the second calibration standard value (slope) and press Enter."));
+				Serial.print(F("A solution recommended for your selected range is "));
+				switch (range)
+				{
+					case RANGE_1:
+						Serial.print(F("84"));
+						break;
+
+					case RANGE_2:
+						Serial.print(F("1413"));
+						break;
+
+					case RANGE_3:
+						Serial.print(F("12880"));
+						break;
+
+					case RANGE_4:
+						Serial.print(F("111800"));
+						break;
+				}
+				Serial.println(F(" uS/cm."));
+				Serial.println(F("Example: 1413"));
+				Serial.print(F("> "));
+
+				//serialClean();
+				while ( getData(input, inputSize) == 0 );
+				Serial.println(input);
+				if ((find((uint8_t*)input, strlen(input), "Q") == 1) || (find((uint8_t*)input, strlen(input), "q") == 1))
+				{
+					//Exit discarding changes
+					exitCalibration();
+				}
+				else
+				{
+
+					slope = atof(input);
+
+					//printLine();
+					Serial.print(F("5. Immerse the sensor in a solution at your selected slope: "));
+					Serial.print(slope, 4);
+					Serial.println(F(" uS/cm."));
+					Serial.println(F("Wait some minutes until the measure stabilizes.."));
+					Serial.println(F("Then insert 'N' for Next step and press Enter."));
+
+					//serialClean();
+
+					j = 300;
+					while ((find((uint8_t*)input, strlen(input), "N") != 1) && (find((uint8_t*)input, strlen(input), "Q") != 1)
+								&& (find((uint8_t*)input, strlen(input), "n") != 1) && (find((uint8_t*)input, strlen(input), "q") != 1))
+					{
+						j++;
+						if (j >= 300)
+						{
+							j = 0;
+
+							read_C4E();
+							Serial.println();
+							Serial.print(sensorC4E.conductivity, 2);
+							Serial.println(F(" uS/cm"));
+							Serial.print(F("> "));
+						}
+
+						getData(input, inputSize);
+						delay(10);
+					}
+
+					Serial.println(input);
+					if ((find((uint8_t*)input, strlen(input), "Q") == 1) || (find((uint8_t*)input, strlen(input), "q") == 1))
+					{
+						//Exit discarding changes
+						exitCalibration();
+					}
+					else
+					{
+						//In step 3 user select calibration standard 2 (slope)
+						//This step must be done after stabilizing and measuring in water with
+						//the selected value
+						calibrate(C4E, PARAMETER_1, STEP_3, slope);
+
+						//printLine();
+						Serial.println(F("6. In order to validate the calibration some data is required."));
+						Serial.println(F("Please insert operator's name (up to 16 letters) and press Enter."));
+						Serial.print(F("> "));
+
+						//serialClean();
+
+						uint8_t validInput = 0;
+						while (!validInput)
+						{
+							while (getData(input, inputSize) == 0);
+
+							if (strlen(input) > 15)
+							{
+								Serial.println(F("Invalid name."));
+								Serial.println(F("Please insert calibration operator's name (up to 16 letters)"));
+								Serial.print(F("> "));
+								//serialClean();
+							}
+							else
+							{
+								validInput = 1;
+							}
+						}
+
+						char calibrationOperatorsName_temp[17];
+						memset(calibrationOperatorsName_temp, 0x00, sizeof(calibrationOperatorsName_temp));
+						strcpy(calibrationOperatorsName_temp, input);
+
+
+						for (int k = strlen(input); k < 16; k++)
+						{
+							calibrationOperatorsName_temp[k] = ' ';
+						}
+
+						Serial.println(calibrationOperatorsName_temp);
+						fillOperatorsName(calibrationOperatorsName_temp);
+
+						//printLine();
+						Serial.println(F("7.Please insert calibration date."));
+
+
+						int year;
+						int month;
+						int day;
+						int hour;
+						int minute;
+
+						char calibrationDate_temp[17];
+						memset(calibrationDate_temp, 0x00, sizeof(calibrationDate_temp));
+						/////////////////////////////////
+						//	YEAR
+						/////////////////////////////////
+						//serialClean();
+						do
+						{
+							Serial.println("Insert year [yy] and press Enter.");
+							Serial.print(F("> "));
+						}
+						while ( getDate(input, inputSize, 2) != true );
+
+						year = atoi(input);
+						Serial.println(year);
+
+
+						/////////////////////////////////
+						//	MONTH
+						/////////////////////////////////
+						//serialClean();
+						do
+						{
+							Serial.println("Insert month [mm] and press Enter.");
+							Serial.print(F("> "));
+						}
+						while ( getDate(input, inputSize, 2) != true );
+
+						month = atoi(input);
+						Serial.println(month);
+
+
+						/////////////////////////////////
+						//	DAY
+						/////////////////////////////////
+						//serialClean();
+						do
+						{
+							Serial.println("Insert day [dd] and press Enter.");
+							Serial.print(F("> "));
+						}
+						while ( getDate(input, inputSize, 2) != true );
+
+						day = atoi(input);
+						Serial.println(day);
+
+
+						/////////////////////////////////
+						//	HOUR
+						/////////////////////////////////
+						//serialClean();
+						do
+						{
+							Serial.println("Insert Hour [HH] and press Enter.");
+							Serial.print(F("> "));
+						}
+						while ( getDate(input, inputSize, 2) != true );
+
+						hour = atoi(input);
+						Serial.println(hour);
+
+						/////////////////////////////////
+						//	MINUTE
+						/////////////////////////////////
+						//serialClean();
+						do
+						{
+							Serial.println("Insert minute [MM] and press Enter.");
+							Serial.print(F("> "));
+						}
+						while ( getDate(input, inputSize, 2) != true );
+
+						minute = atoi(input);
+						Serial.println(minute);
+
+
+						/////////////////////////////////
+						//	create buffer
+						/////////////////////////////////
+						sprintf(calibrationDate_temp, "%02u%02u%02u%02u20%02u",
+										minute,
+										hour,
+										day,
+										month,
+										year );
+
+
+						calibrationDate_temp[12] = ' ';
+						calibrationDate_temp[13] = ' ';
+						calibrationDate_temp[14] = ' ';
+						calibrationDate_temp[15] = ' ';
+
+						//Serial.println(calibrationDate_temp);
+
+						fillCalibrationDate(calibrationDate_temp);
+
+
+						//In step 4 user validates the entire calibration entering operator's name and date
+						if (calibrate(C4E, PARAMETER_1, STEP_4, NULL) == 0)
+						{
+							//printLine();
+							Serial.println(F("Calibration successfully finished!"));
+						}
+						else
+						{
+							//printLine();
+							Serial.println(F("Error in calibration validation"));
+						}
+
+					}
+				}
+			}
+		}
+		//printLine();
+		Serial.println(F("End of calibration process"));
+		//printBigLine();
+	}
+
+}
 //aqualaboModbusSensorsClass	aqualaboModbusSensors = aqualaboModbusSensorsClass(SERIAL_PORT_HARDWARE,);
 

@@ -205,13 +205,26 @@ class aqualaboModbusSensorsClass{
 		uint8_t readWaitingTime();
 		
 		void clearBuffer();
+
+        //Menu assisted calibration functions
+		void exitCalibration();
+		void exitCalibrationAndStopElectronicZero();
+		bool find( uint8_t* buffer, uint16_t length, char* pattern);
+		uint8_t getData(char* input, uint8_t inputLength);
+		boolean getDate(char* input, uint8_t inputLength, int numBytes);
+		void fillOperatorsName(char* name);
+		void fillCalibrationDate(char* date);
 		
 		// Basic functions
 		uint8_t initSensor(uint8_t range, uint8_t avg);
 		uint8_t initSensor(uint8_t range);
 		uint8_t initSensor();
+        
+		// C4E functions
+		uint8_t read_C4E();
+		void calibrationProcess_C4E(uint8_t parameter);
 
-		uint8_t read();
+
 		
 		// Reading functions
 		uint8_t readMeasures(float &parameter1, 
