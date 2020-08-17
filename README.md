@@ -1,9 +1,5 @@
 # Aqualabo Sensor Arduino Library
 
-<a href="https://github.com/sponsors/ElectronicCats">
-  <img src="https://electroniccats.com/wp-content/uploads/2020/07/Badge_GHS.png" height="104" />
-</a>
-
 ![LibraryBuild](https://github.com/ElectronicCats/AqualaboSensorsLibrary/workflows/LibraryBuild/badge.svg?branch=master)
 
 ## Introduction
@@ -35,6 +31,11 @@ When using ModBusMasterFB Library, you must install the [ModBusMasterFB Library]
 - Compatible with other port Serial (Serial2 default)
 
 ### Maintainer
+
+<a href="https://github.com/sponsors/ElectronicCats">
+  <img src="https://electroniccats.com/wp-content/uploads/2020/07/Badge_GHS.png" height="104" />
+</a>
+
 
 Electronic Cats invests time and resources providing this open source design, please support Electronic Cats and open-source hardware by purchasing products from Electronic Cats!
 
