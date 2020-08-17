@@ -1831,8 +1831,6 @@ uint16_t aqualaboModbusSensorsClass::readAverage()
 	}
 }
 
-
-
 //!*************************************************************
 //!	Name:	clearBuffer()
 //!	Description: Flushes the buffers.
@@ -1846,8 +1844,6 @@ void aqualaboModbusSensorsClass::clearBuffer()
 	sensor.clearTransmitBuffer();
 	delay(10);
 }
-
-
 
 //!*************************************************************
 //!	Name:	readSerialNumber()
@@ -1894,7 +1890,6 @@ uint8_t aqualaboModbusSensorsClass::readSerialNumber(char *sensorSerialNumber)
 	return status;
 }
 
-
 void aqualaboModbusSensorsClass::setParametersBySensor(uint8_t sensorType)
 {
 	switch (sensorType)
@@ -1940,7 +1935,6 @@ void aqualaboModbusSensorsClass::setParametersBySensor(uint8_t sensorType)
 			break;
 	}
 }
-
 
 //!*************************************************************
 //!	Name:	readMeasures()
@@ -2124,7 +2118,6 @@ uint8_t aqualaboModbusSensorsClass::readMeasures(	float &parameter1,
 	return 1;
 }
 
-
 //!*************************************************************
 //!	Name:	readMeasures()
 //!	Description: Returns all the measures of the sensor
@@ -2272,19 +2265,125 @@ uint8_t aqualaboModbusSensorsClass::read_C4E()
   return response;
 }
 
-/* readSerialNumber: Gets the serial number of the sensor
-	parameters: void
-	return: 1 if ok, 0 if something fails
-*/
-/*
-uint8_t aqualaboModbusSensorsClass::readSerialNumber_C4E()
+uint8_t aqualaboModbusSensorsClass::getData(char* _input , uint8_t _inputSize)
 {
-	memset(sensorSerialNumber, 0x00, sizeof(sensorC4E.sensorSerialNumber));
+	memset(_input, 0x00, _inputSize);
+	uint8_t i = 0;
 
-	//Socket E is the only with RS-485
-    uint8_t response = aqualaboModbusSensorsClass.readSerialNumber(sensorC4E.sensorSerialNumber);
+	if (Serial.available() > 0)
+	{
+		while ((Serial.available() > 0)  && (i < _inputSize))
+		{
+			_input[i] = Serial.read();
+			//Serial.print("READ:");
+			//Serial.println(input[i]);
+			if ((_input[i] == '\r') || (_input[i] == '\n') )
+			{
+				_input[i] = 0x00;
+			}
+			else
+			{
+				i++;
+			}
+			delay(10);
+		}
+	}
+	return i;
 }
+
+boolean aqualaboModbusSensorsClass::getDate(char* input, uint8_t inputSize, int numBytes)
+{
+	memset(input, 0x00, inputSize);
+	int i = 0;
+	Serial.flush();
+	int nRead = 0;
+
+	while (!Serial.available());
+
+	while (Serial.available() > 0)
+	{
+		input[i] = Serial.read();
+
+		if ( (input[i] == '\r') || (input[i] == '\n') )
+		{
+			input[i] = 0x00;
+		}
+		else
+		{
+			i++;
+		}
+	}
+
+	nRead = i;
+
+	if (nRead != numBytes)
+	{
+		Serial.print(F("must write "));
+		Serial.print(numBytes, DEC);
+		Serial.print(F(" characters. Read "));
+		Serial.print(nRead, DEC);
+		Serial.println(F(" bytes"));
+		return false;
+	}
+	else
+	{
+		input[i] = '\0';
+		return true;
+	}
+
+}
+
+/*
+	name: find
+	@param	uint8_t* buffer: pointer to buffer to be scanned
+	@param uint16_t length: actual length of buffer
+	@param char* pattern: pattern to find
+	@return	'0' not found,
+				'1' pattern found
 */
+bool aqualaboModbusSensorsClass::find( uint8_t* buffer, uint16_t length, char* pattern)
+{
+	int result;
+
+	if ( length >= strlen(pattern) )
+	{
+		for (uint16_t i = 0; i <= length - strlen(pattern); i++)
+		{
+			result = memcmp( &buffer[i], pattern, strlen(pattern) );
+
+			if ( result == 0 )
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+/*!
+	\brief Fill Operators Name
+	\param void
+	\return 0 if ok, 1 if error
+*/
+void aqualaboModbusSensorsClass::fillOperatorsName(char* name)
+{
+	memset(aqualaboModbusSensors.calibrationOperatorsName, 0x00, sizeof(aqualaboModbusSensors.calibrationOperatorsName));
+	strcpy(aqualaboModbusSensors.calibrationOperatorsName, name);
+}
+
+
+/*!
+	\brief Fill Operators Name
+	\param void
+	\return 0 if ok, 1 if error
+*/
+void aqualaboModbusSensorsClass::fillCalibrationDate(char* date)
+{
+	memset(aqualaboModbusSensors.calibrationDate, 0x00, sizeof(aqualaboModbusSensors.calibrationDate));
+	strcpy(aqualaboModbusSensors.calibrationDate, date);
+}
+
 /*!
 	\brief menu assisted calibration process
 	\param sensorType and parameter

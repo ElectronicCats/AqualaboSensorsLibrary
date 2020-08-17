@@ -47,11 +47,11 @@
  */
 #define DEBUG_XTR_MODBUS		0
 
-#define PRINT_XTR_MODBUS(str)		USB.print(F("[XTR-MODBUS] ")); USB.print(str);
-#define PRINT_XTR_MODBUS_VAL(val)	USB.print(val, BIN);
+#define PRINT_XTR_MODBUS(str)		Serial.print(F("[XTR-MODBUS] ")); Serial.print(str);
+#define PRINT_XTR_MODBUS_VAL(val)	Serial.print(val, BIN);
 
-#define PRINTLN_XTR_MODBUS(str)		USB.print(F("[XTR-MODBUS] ")); USB.println(str);
-#define PRINTLN_XTR_MODBUS_VAL(val)	USB.println(val, BIN);
+#define PRINTLN_XTR_MODBUS(str)		Serial.print(F("[XTR-MODBUS] ")); Serial.println(str);
+#define PRINTLN_XTR_MODBUS_VAL(val)	Serial.println(val, BIN);
 
 
 // Some sensor Registers
